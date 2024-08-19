@@ -1,7 +1,13 @@
-model_name: AnyTaskLearner
-state_dim: 10
-action_dim: 4
-sequence_dim: 5
-hidden_units: 128
-epochs: 10
-learning_rate: 0.001
+model:
+  state_dim: 10
+  action_dim: 4
+  sequence_dim: 5
+  hidden_units: 128
+  learning_rate: 0.001
+  epochs: 10
+  batch_size: 32
+
+paths:
+  data_dir: "data/processed"
+  model_dir: "models/saved_models"
+  log_dir: "logs"

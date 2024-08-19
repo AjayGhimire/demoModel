@@ -1,11 +1,17 @@
-import pandas as pd
+import logging
+import os
 
 
-def load_and_process_data(file_path):
-    # Load the data from a CSV file
-    data = pd.read_csv(file_path)
+def setup_logger(log_dir):
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
 
-    # Perform data processing (e.g., normalization, encoding)
-    processed_data = data  # Apply your processing steps here
+    logger = logging.getLogger('AnyTaskLearner')
+    logger.setLevel(logging.INFO)
 
-    return processed_data
+    file_handler = logging.FileHandler(os.path.join(log_dir, 'training.log'))
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+
+    logger.addHandler(file_handler)
+    return logger
