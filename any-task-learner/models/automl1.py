@@ -1,39 +1,28 @@
-import tensorflow as tf
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 
-class AutoML1_Unsupervised(tf.keras.Model):
+class AutoML1_Unsupervised(nn.Module):
     def __init__(self, input_dim, hidden_units):
         super(AutoML1_Unsupervised, self).__init__()
 
-        # Preprocessing components
-        self.scaler = StandardScaler()
-        self.pca = PCA(n_components=hidden_units)
+        # Convolutional layers for feature extraction
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(2, 2)
 
-        # Autoencoder for dimensionality reduction
-        self.encoder = tf.keras.Sequential([
-            tf.keras.layers.Dense(hidden_units, activation='relu'),
-            tf.keras.layers.Dense(hidden_units // 2, activation='relu')
-        ])
-        self.decoder = tf.keras.Sequential([
-            tf.keras.layers.Dense(hidden_units, activation='relu'),
-            tf.keras.layers.Dense(input_dim, activation='sigmoid')
-        ])
+        # Fully connected layers for the output
+        self.fc1 = nn.Linear(32 * (input_dim // 4) * (input_dim // 4), hidden_units)
+        self.fc2 = nn.Linear(hidden_units, input_dim)
 
-    def preprocess(self, X):
-        # Standardize and reduce dimensionality
-        X_scaled = self.scaler.fit_transform(X)
-        X_reduced = self.pca.fit_transform(X_scaled)
-        return X_reduced
+    def forward(self, x):
+        # Feature extraction with convolutional layers
+        x = self.pool(torch.relu(self.conv1(x)))
+        x = self.pool(torch.relu(self.conv2(x)))
+        x = x.view(-1, 32 * (x.shape[2] // 2) * (x.shape[3] // 2))
 
-    def call(self, inputs):
-        # Preprocess inputs
-        inputs_preprocessed = self.preprocess(inputs)
-
-        # Encode and decode using the autoencoder
-        encoded = self.encoder(inputs_preprocessed)
-        decoded = self.decoder(encoded)
-
-        return decoded, encoded
+        # Fully connected layers
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
